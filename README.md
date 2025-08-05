@@ -1,5 +1,3 @@
-# Price-Volume-Indicator
-
 # Rupee Volume Indicator (Pine Script)
 
 This indicator calculates **volume in currency value (₹)** instead of just quantity. Useful for spotting smart money participation using price × volume turnover logic.
