@@ -1,5 +1,100 @@
 //@version=5
 indicator("Volume in Currency (Rupees)", "Vol (₹)", format=format.price, precision=2, overlay=false)
 
-// Will Update later
+// Group for Calculation Settings
+group_calc = "Calculation Settings"
+i_price_src = input.string("hlc3", "Price Source", options=["close", "hlc3", "ohlc4", "hl2", "vwap"], inline="price", group=group_calc, tooltip="The price used to calculate the currency value of the volume. 'vwap' is often a good choice for this.")
+i_ma_len = input.int(20, "Average Length", minval=1, inline="avg", group=group_calc, tooltip="The length of the moving average for the rupee volume.")
+i_ma_type = input.string("SMA", "Average Type", options=["SMA", "EMA"], inline="avg", group=group_calc)
+// End
 
+// Group for Display Settings
+group_disp = "Display Settings"
+i_color_method = input.string("Price Based", "Bar Color Method", options=["Price Based", "Volume Based"], group=group_disp, tooltip="Price Based: Colors bars if the price candle is up or down.\nVolume Based: Colors bars if current volume is higher or lower than the previous volume.")
+i_unit = input.string("Crores (Cr)", "Display Unit", options=["Absolute (₹)", "Thousands (K)", "Lakhs (L)", "Crores (Cr)"], group=group_disp, tooltip="Choose the unit for displaying the volume values on the Y-axis and in the data window.")
+i_up_color = input.color(color.new(#FF00FF, 0), "Up Color", inline="colors", group=group_disp)
+i_down_color = input.color(color.new(#0000FF, 0), "Down Color", inline="colors", group=group_disp)
+i_avg_color = input.color(color.new(color.gray, 0), "Avg Line Color", inline="avg_line", group=group_disp)
+i_avg_width = input.int(2, "Avg Line Width", minval=1, maxval=4, inline="avg_line", group=group_disp)
+//End
+
+// --- CALCULATIONS ---
+
+// 1. Get the selected price source
+price = switch i_price_src
+    "close" => close
+    "hlc3"  => hlc3
+    "ohlc4" => ohlc4
+    "hl2"   => hl2
+    "vwap"  => ta.vwap(hlc3)
+    => na 
+    //End
+
+// 2. Calculate the raw Rupee Volume (Turnover)
+rupeeVolume = volume * price
+//End
+
+// 3. Calculate the moving average of the Rupee Volume
+float avgRupeeVolume = switch i_ma_type
+    "SMA" => ta.sma(rupeeVolume, i_ma_len)
+    "EMA" => ta.ema(rupeeVolume, i_ma_len)
+    => na
+    //End 
+
+// 4. Determine the divisor and unit label based on user input
+divisor = switch i_unit
+    "Absolute (₹)"  => 1.0
+    "Thousands (K)" => 1000.0
+    "Lakhs (L)"     => 100000.0
+    "Crores (Cr)"   => 10000000.0
+    => na 
+
+unit_label = switch i_unit
+    "Absolute (₹)"  => "₹"
+    "Thousands (K)" => "K"
+    "Lakhs (L)"     => "L"
+    "Crores (Cr)"   => "Cr"
+    => ""
+    //End 
+
+// 5. Apply the divisor to the values for plotting
+displayVolume = rupeeVolume / divisor
+displayAvgVolume = avgRupeeVolume / divisor
+//End
+
+// 6. Determine the bar color based on the selected method
+is_up_condition = switch i_color_method
+    "Price Based"  => close >= open
+    "Volume Based" => volume > volume[1] // Condition is true if current volume is greater than previous volume
+    => na
+
+barColor = is_up_condition ? i_up_color : i_down_color
+//End
+
+//End CALCULATIONS
+
+// --- PLOTTING ---
+
+// Plot the Rupee Volume as columns
+plot(displayVolume, "Rupee Volume", style=plot.style_columns, color=barColor, title="Volume (₹)")
+
+// Plot the Moving Average line
+plot(displayAvgVolume, "Average Rupee Volume", color=i_avg_color, linewidth=i_avg_width, title="Avg Vol (₹)")
+
+//End
+
+// --- DATA LABELS (Shows values in a table like the image) ---
+var table volTable = table.new(position.middle_left, 2, 2, border_width = 1)
+
+if (barstate.islast)
+    // Format values for display
+    last_vol_str = str.tostring(displayVolume, format.mintick)
+    avg_vol_str  = str.tostring(displayAvgVolume, format.mintick)
+
+    // Update table content
+    table.cell(volTable, 0, 0, "Vol (" + unit_label + "): ", text_color=color.white,bgcolor=barColor,text_halign=text.align_left)
+    table.cell(volTable, 1, 0, last_vol_str, text_color=color.white,bgcolor=barColor,text_halign=text.align_left)
+    table.cell(volTable, 0, 1, "Avg Vol (" + unit_label + "): ", text_color=color.white,bgcolor=color.rgb(168, 136, 7), text_halign=text.align_left)
+    table.cell(volTable, 1, 1, avg_vol_str, text_color=color.white,bgcolor=color.rgb(168, 136, 7), text_halign=text.align_left)
+    //End
+    
