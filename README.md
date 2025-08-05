@@ -14,7 +14,7 @@ You can create alerts when **rupee volume spikes** when vol > avg vol (e.g. larg
 -  **Moving Average Line**: SMA or EMA of rupee volume.
 -  **Info Table**: Volume and average on latest bar (shown on left).
 -  **Hover Support**: Shows rupee volume in TradingView's **Data Window**.
--  **Alert Ready**: Get alerts when a big volume spike happens (`> 2x avg`).
+-  **Alert Ready**: Get alerts when a big volume spike happens (`> 1.1x avg`).
 -  Fully configurable and beginner-friendly.
 
 ## Preview
