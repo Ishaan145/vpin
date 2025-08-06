@@ -20,7 +20,7 @@ You can create alerts when **rupee volume spikes** when vol > avg vol (e.g. larg
 ## Preview
 <img width="1767" height="305" alt="image" src="https://github.com/user-attachments/assets/5e3c9a35-3643-4428-b87b-dcc299b2d29d" />
 
-## ⚙️ Input Settings
+##  Input Settings
 
 | Setting              | Description |
 | **Price Source**     | `close`, `hlc3`, `ohlc4`, etc. |
@@ -37,7 +37,7 @@ You can create alerts when **rupee volume spikes** when vol > avg vol (e.g. larg
 2. Open **Pine Script Editor**
 3. Paste the content from `VolumeInRupees.pine`
 4. Click **Add to Chart**
-5. Customize from the settings ⚙️ icon
+5. Customize from the settings icon
 
 
 
